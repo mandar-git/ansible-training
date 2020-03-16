@@ -1,0 +1,11 @@
+Validate the connection between ansible control machine and host using ansible ping module
+Get the uptime of remote hosts using ansible ad hoc command
+How to check the free memory or memory usage of  hosts using ansible ad hoc command
+ansible ad hoc command to get physical memory allocated to the host
+ansible ad hoc command Execute a command as root user (sudo) on host
+ansible ad hoc command to Execute a command as a different user 
+Create a Directory with 755 permission using ansible ad hoc command
+Create a file with 755 permission using ansible ad hoc commands
+how to check free disk space of hosts using ansible ad hoc commands
+ad hoc command to Install a package using yum command
+ad hoc command to Start or stop the service
