@@ -1,0 +1,20 @@
+---
+- hosts: localhost
+  gather_facts: no
+  vars:
+    list1: ['Apple','Banana','Cat', 'Dog']
+  tasks:
+    - name: Template Loop example.
+      template:
+        src: example.j2
+        dest: /home/ec2-user/ansible/day5/output.txt     
+
+    - name: display contents of output file
+      debug: 
+        msg="{{lookup('file', '/home/ec2-user/ansible/day5/output.txt') }}"
+
+    - shell: "cat /home/ec2-user/ansible/day5/output.txt"
+      register: out
+      
+    - debug:
+        msg="{{out.stdout_lines}}"
