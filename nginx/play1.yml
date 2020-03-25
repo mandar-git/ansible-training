@@ -1,0 +1,11 @@
+---
+- hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: ensure nginx is at the latest version
+      shell: "sudo amazon-linux-extras install nginx1.12"
+
+    - name: start nginx
+      service:
+          name: nginx
+          state: started
