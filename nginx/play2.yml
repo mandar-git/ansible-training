@@ -1,0 +1,18 @@
+---
+- hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: install nginx on Amazon linux
+      shell: "sudo amazon-linux-extras install nginx1.12"
+
+    - name: backup default home page
+      copy: src=/usr/share/nginx/html/index.html dest=/usr/share/nginx/html/index.html.bkp
+
+    - name: modify homepage
+      copy:
+        src: index.html
+        dest: /usr/share/nginx/html
+    - name: start nginx
+      service:
+          name: nginx
+          state: started
