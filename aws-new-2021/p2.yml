@@ -1,0 +1,27 @@
+---
+- hosts: localhost
+  vars_files:
+  - ec2vars.yml
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+  tasks:
+  - name: Create EC2 Instance(s) to match instance_count with tag_name
+    ec2:
+      key_name: "{{ key_pair }}"
+      instance_type: "{{ instance_type }}"
+      image: "{{ ami_id }}"
+      wait: yes
+      group_id: "{{ ansible_sg }}"
+      vpc_subnet_id: "{{ subnetId }}"
+      assign_public_ip: yes
+      region: "{{ aws_region }}"
+      count_tag:
+        Name: "{{ tag_name }}"
+      exact_count: "{{ instance_count }}"
+      instance_tags:
+        Name: "{{ tag_name }}"
+    register: ec2pub
+
+  - name: 
+    debug:
+      msg: "{{ ec2pub.instances[0].private_ip }}" 
