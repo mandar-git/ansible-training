@@ -1,0 +1,112 @@
+--- 
+- hosts: localhost
+  connection: local
+  gather_facts: False
+  vars_files:
+  - myvars.yaml
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    status: present
+  tasks:
+  - name: Install boto3 and botocore with pip3 module
+    pip:
+      name: 
+      - boto3
+      - botocore
+      - pip
+      extra_args: --upgrade
+      executable: pip3
+
+  - name: Delete if existing keypair
+    ec2_key: 
+      name: "{{key_pair}}"
+      region: "{{ aws_region }}"
+      state: "absent"
+ 
+  - name: Generate new EC2 key pair
+    ec2_key:
+      name: "{{key_pair}}"
+      region : "{{ aws_region }}"
+      state: "{{ status }}"
+      wait_timeout: "300"
+      force: yes
+    register: ec2_key_result
+
+  - name: validate generated key pair
+    debug:
+      msg: "{{ ec2_key_result }}"
+
+  - name: Save private key
+    copy: 
+      content: "{{ ec2_key_result.key.private_key }}" 
+      dest : "{{keypath}}" 
+      mode: 0600
+
+  - name: Create an EC2 instance
+    ec2:  
+      region: "{{ aws_region }}"
+      key_name: "{{key_pair}}"
+      group_id: "{{ sg_id }}"
+      instance_type: "{{ instance_type }}"
+      image: "{{ ami_id }}"
+      wait: yes
+      instance_tags:
+        env: "{{ env }}"
+        Name: "{{ tag_name }}"
+      count_tag: env
+      exact_count: "{{instance_count}}"
+      vpc_subnet_id: "{{ subnet_id }}" 
+      assign_public_ip: yes
+    register: ec2 
+   
+  - name: disp
+    debug: 
+      msg: " {{ item.public_ip }}"
+    with_items: "{{ ec2.instances }}"
+
+  - name: create inv file
+    copy:
+      content: "[testgroup]\n"
+      dest: "{{ hostpath }}"
+      force: yes
+      owner: root
+      mode: 0777
+     
+  - name: Add the newly created EC2 instance(s) to host group
+    lineinfile: dest="{{ hostpath }}"
+                regexp="{{ item.private_ip }}"
+                insertafter="[testgroup]" 
+                line="{{ item.private_ip }}"
+                state="{{status}}"
+    with_items: "{{ec2.instances}}"   
+
+  - name: Wait for 90 seconds for status checks for EC2
+    wait_for:
+       timeout: 90
+    delegate_to: localhost
+ 
+  post_tasks: 
+    - name: Refresh inventory
+      meta: refresh_inventory
+       
+- name: copy generated ec2-key-pairs for newly created EC2 instances
+  hosts: testgroup
+  gather_facts: False
+  vars:
+    ansible_user: ec2-user
+    key : "~/.ssh/id_rsa.pub"
+  tasks:
+     - name: Validate ssh ping to managed hosts
+       ping:
+       register: ping_result
+
+     - name: 
+       debug:
+         msg: "{{ ping_result }}"
+
+
+     - name: "Copy the authorized key file from"
+       authorized_key: 
+        user: "{{ansible_user}}"
+        state: present
+        key: "{{ lookup('file', '{{ key }}')}}"

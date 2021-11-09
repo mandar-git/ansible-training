@@ -1,0 +1,9 @@
+---
+- hosts: testgroup
+  gather_facts: False
+  tasks:
+    - name: validate ping
+      ping:
+      register: ping_result
+
+

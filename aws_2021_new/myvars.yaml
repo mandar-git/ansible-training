@@ -1,0 +1,11 @@
+instance_type: t2.micro
+ami_id: ami-0732b62d310b80e97
+sg_id: sg-01dd7193da226b65e
+subnet_id: subnet-0fc52ab2b38c097dc
+aws_region: ap-south-1
+instance_count: 3
+tag_name: test-ec2
+env: dev
+hostpath: ./inv
+keypath : ./ansible-demo.pem
+key_pair: ansible-demo
